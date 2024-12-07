@@ -188,6 +188,11 @@ class ContentBlocksController extends AppController {
         $this->request->allowMethod(['post', 'delete']);
         $contentBlock = $this->ContentBlocks->get($id);
 
+        // Delete the replaced image file from the storage directory
+        if ($contentBlock->type === 'image') {
+            $this->deleteFile($contentBlock->value);
+        }
+
         // Restore previous_value to value, then clear the previous_value field
         $contentBlock->value = $contentBlock->previous_value;
         $contentBlock->previous_value = null;
@@ -199,5 +204,17 @@ class ContentBlocksController extends AppController {
         }
 
         return $this->redirect(['action' => 'index']);
+    }
+
+    /**
+     * Delete a file from the storage directory.
+     *
+     * @param string|null $filePath Path to the file to be deleted.
+     * @return void
+     */
+    private function deleteFile(?string $filePath): void {
+        if ($filePath && file_exists(WWW_ROOT . $filePath)) {
+            unlink(WWW_ROOT . $filePath);
+        }
     }
 }
